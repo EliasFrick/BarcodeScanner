@@ -34,7 +34,7 @@ export default class App extends Component {
       code128checked: true,
       lastApiVisible: false,
       lastApiText: "Messages from DataWedge will go here",
-      checkBoxesDisabled: true,
+      checkBoxesDisabled: false,
       scanButtonVisible: true,
       dwVersionText:
         "Pre 6.3.  Please create and configure profile manually.  See the ReadMe for more details",
@@ -43,21 +43,19 @@ export default class App extends Component {
       enumeratedScannersText: "Requires DataWedge 6.3=+",
       scans: [],
     };
-    //this.scans = [{decoder: 'label', timeAtDecode: 'time', data: '123'},
-    //  {decoder: 'label', timeAtDecode: 'time', data: '321'},
-    //  {decoder: 'label', timeAtDecode: 'time', data: '123'}];
+    this.scans = [
+      { decoder: "label", timeAtDecode: "time", data: "123" },
+      { decoder: "label", timeAtDecode: "time", data: "321" },
+      { decoder: "label", timeAtDecode: "time", data: "123" },
+    ];
     this.state.sendCommandResult = "false";
 
-    console.log("constructor");
     if (Constants.executionEnvironment === "bare") {
       this.state.DataWedgeIntents = require("./DataWedge.js");
       this.setState(this.state);
-      console.log("find");
     }
   }
   componentDidMount() {
-    console.log("ExecutionEnvironment: " + Constants.executionEnvironment);
-
     this.state.deviceEmitterSubscription = DeviceEventEmitter.addListener(
       "datawedge_broadcast_intent",
       (intent) => {
@@ -65,7 +63,6 @@ export default class App extends Component {
       }
     );
 
-    console.log("determind Version");
     this.determineVersion();
   }
 
@@ -93,7 +90,7 @@ export default class App extends Component {
       PLUGIN_CONFIG: {
         PLUGIN_NAME: "BARCODE",
         PARAM_LIST: {
-          //"current-device-id": this.selectedScannerId,
+          "current-device-id": this.selectedScannerId,
           scanner_selection: "auto",
           decoder_ean8: "" + this.state.ean8checked,
           decoder_ean13: "" + this.state.ean13checked,
@@ -107,23 +104,19 @@ export default class App extends Component {
 
   sendCommand(extraName, extraValue) {
     if (Constants.executionEnvironment === "bare") {
-      console.log(
-        "Sending Command: " + extraName + ", " + JSON.stringify(extraValue)
-      );
+      // console.log(
+      //   "Sending Command: " + extraName + ", " + JSON.stringify(extraValue)
+      // );
       var broadcastExtras = {};
       broadcastExtras[extraName] = extraValue;
       broadcastExtras["SEND_RESULT"] = this.state.sendCommandResult;
 
-      if (!!this.state.DataWedgeIntents) {
-        this.state.DataWedgeIntents.sendBroadcastWithExtras({
-          action: "com.symbol.datawedge.api.ACTION",
-          extras: broadcastExtras,
-        });
-      } else {
-        console.log("dependency not found!");
-      }
-    } else {
-      //console.log("no hardware scanner device found.");
+      // if (!!this.state.DataWedgeIntents) {
+      this.state.DataWedgeIntents.sendBroadcastWithExtras({
+        action: "com.symbol.datawedge.api.ACTION",
+        extras: broadcastExtras,
+      });
+      // }
     }
   }
 
@@ -156,6 +149,7 @@ export default class App extends Component {
       if (datawedgeVersion >= "6.3") this.datawedge63();
       if (datawedgeVersion >= "6.4") this.datawedge64();
       if (datawedgeVersion >= "6.5") this.datawedge65();
+      if (datawedgeVersion >= "7.0") this.datawedge70();
 
       this.setState(this.state);
     } else if (
@@ -180,6 +174,10 @@ export default class App extends Component {
       //  A barcode has been scanned
       this.barcodeScanned(intent, new Date().toLocaleString());
     }
+  }
+
+  datawedge70() {
+    console.log("DataWedge 70");
   }
 
   datawedge63() {
@@ -265,6 +263,49 @@ export default class App extends Component {
     //  Instruct the API to send
     this.state.sendCommandResult = "true";
     this.state.lastApiVisible = true;
+  }
+
+  createProfile() {
+    this.sendCommand(
+      "com.symbol.datawedge.api.CREATE_PROFILE",
+      "ZebraExpoDemo"
+    );
+
+    //  Configure the created profile (associated app and keyboard plugin)
+    var profileConfig = {
+      PROFILE_NAME: "ZebraExpoDemo",
+      PROFILE_ENABLED: "true",
+      CONFIG_MODE: "UPDATE",
+      PLUGIN_CONFIG: {
+        PLUGIN_NAME: "BARCODE",
+        RESET_CONFIG: "true",
+        PARAM_LIST: {},
+      },
+      APP_LIST: [
+        {
+          PACKAGE_NAME: "com.datawedgeexpo.demo",
+          ACTIVITY_LIST: ["*"],
+        },
+      ],
+    };
+    this.sendCommand("com.symbol.datawedge.api.SET_CONFIG", profileConfig);
+
+    //  Configure the created profile (intent plugin)
+    var profileConfig2 = {
+      PROFILE_NAME: "ZebraExpoDemo",
+      PROFILE_ENABLED: "true",
+      CONFIG_MODE: "UPDATE",
+      PLUGIN_CONFIG: {
+        PLUGIN_NAME: "INTENT",
+        RESET_CONFIG: "true",
+        PARAM_LIST: {
+          intent_output_enabled: "true",
+          intent_action: "com.zebra.expodemo.ACTION",
+          intent_delivery: "2",
+        },
+      },
+    };
+    this.sendCommand("com.symbol.datawedge.api.SET_CONFIG", profileConfig2);
   }
 
   commandReceived(commandText) {
@@ -390,6 +431,7 @@ export default class App extends Component {
             }}
           />
         )}
+        <Button title="Create Profile" onPress={this.createProfile()} />
 
         <Text style={styles.itemHeading}>
           Scanned barcodes will be displayed here:
