@@ -9,6 +9,7 @@
 import { registerRootComponent } from "expo";
 import { Component } from "react";
 import * as Device from "expo-device";
+import Constants from "expo-constants";
 import {
   StyleSheet,
   Text,
@@ -19,13 +20,14 @@ import {
 } from "react-native";
 import { CheckBox, Button } from "react-native-elements";
 import { DeviceEventEmitter } from "react-native";
-import { DataWedgeIntents } from "react-native-datawedge-intents";
 import * as React from "react";
 
 export default class App extends Component {
   constructor(Props) {
     super(Props);
+
     this.state = {
+      DataWedgeIntents: undefined,
       ean8checked: true,
       ean13checked: true,
       code39checked: true,
@@ -33,7 +35,7 @@ export default class App extends Component {
       lastApiVisible: false,
       lastApiText: "Messages from DataWedge will go here",
       checkBoxesDisabled: true,
-      scanButtonVisible: false,
+      scanButtonVisible: true,
       dwVersionText:
         "Pre 6.3.  Please create and configure profile manually.  See the ReadMe for more details",
       dwVersionTextStyle: styles.itemTextAttention,
@@ -45,14 +47,25 @@ export default class App extends Component {
     //  {decoder: 'label', timeAtDecode: 'time', data: '321'},
     //  {decoder: 'label', timeAtDecode: 'time', data: '123'}];
     this.state.sendCommandResult = "false";
+
+    console.log("constructor");
+    if (Constants.executionEnvironment === "bare") {
+      this.state.DataWedgeIntents = require("./DataWedge.js");
+      this.setState(this.state);
+      console.log("find");
+    }
   }
   componentDidMount() {
+    console.log("ExecutionEnvironment: " + Constants.executionEnvironment);
+
     this.state.deviceEmitterSubscription = DeviceEventEmitter.addListener(
       "datawedge_broadcast_intent",
       (intent) => {
         this.broadcastReceiver(intent);
       }
     );
+
+    console.log("determind Version");
     this.determineVersion();
   }
 
@@ -93,16 +106,25 @@ export default class App extends Component {
   }
 
   sendCommand(extraName, extraValue) {
-    console.log(
-      "Sending Command: " + extraName + ", " + JSON.stringify(extraValue)
-    );
-    var broadcastExtras = {};
-    broadcastExtras[extraName] = extraValue;
-    broadcastExtras["SEND_RESULT"] = this.state.sendCommandResult;
-    DataWedgeIntents.sendBroadcastWithExtras({
-      action: "com.symbol.datawedge.api.ACTION",
-      extras: broadcastExtras,
-    });
+    if (Constants.executionEnvironment === "bare") {
+      console.log(
+        "Sending Command: " + extraName + ", " + JSON.stringify(extraValue)
+      );
+      var broadcastExtras = {};
+      broadcastExtras[extraName] = extraValue;
+      broadcastExtras["SEND_RESULT"] = this.state.sendCommandResult;
+
+      if (!!this.state.DataWedgeIntents) {
+        this.state.DataWedgeIntents.sendBroadcastWithExtras({
+          action: "com.symbol.datawedge.api.ACTION",
+          extras: broadcastExtras,
+        });
+      } else {
+        console.log("dependency not found!");
+      }
+    } else {
+      //console.log("no hardware scanner device found.");
+    }
   }
 
   broadcastReceiver(intent) {
