@@ -1,0 +1,79 @@
+{
+  "navigation": [
+    {
+      "name": "mpsARES",
+      "label": "/mps/ares/ares:moduleName",
+      "icon": "mpsIcon mpsAres",
+      "supportMode": false,
+      "children": [
+        {
+          "name": "timeReport",
+          "label": "/mps/ares/ares:menu:timeReport",
+          "component": "/zeit/zeitnachweis.xhtml",
+          "icon": "icon-time",
+          "hide": false
+        }
+      ]
+    },
+    {
+      "name": "mpsFIM",
+      "label": "/mps/ares/ares:moduleName",
+      "icon": "mpsIcon mpsAres",
+      "supportMode": false,
+      "children": [
+        {
+          "name": "timeReport",
+          "label": "/mps/ares/ares:menu:timeReport",
+          "component": "/zeit/zeitnachweis.xhtml",
+          "icon": "icon-time",
+          "hide": false
+        }
+      ]
+    },
+    {
+      "name": "mpsINPRO",
+      "label": "/mps/ares/ares:moduleName",
+      "icon": "mpsIcon mpsAres",
+      "supportMode": false,
+      "children": [
+        {
+          "name": "timeReport",
+          "label": "/mps/ares/ares:menu:timeReport",
+          "component": "/zeit/zeitnachweis.xhtml",
+          "icon": "icon-time",
+          "hide": false
+        }
+      ]
+    },
+    {
+      "name": "Allgemein",
+      "label": "/mps/ares/ares:moduleName",
+      "icon": "mpsIcon mpsAres",
+      "supportMode": false,
+      "children": [
+        {
+          "name": "timeReport",
+          "label": "/mps/ares/ares:menu:timeReport",
+          "component": "/zeit/zeitnachweis.xhtml",
+          "icon": "icon-time",
+          "hide": false
+        }
+      ]
+    },
+    {
+      "name": "Supportmodus",
+      "label": "/mps/ares/ares:moduleName",
+      "icon": "mpsIcon mpsAres",
+      "supportMode": true,
+      "children": [
+        {
+          "name": "timeReport",
+          "label": "/mps/ares/ares:menu:timeReport",
+          "component": "/zeit/zeitnachweis.xhtml",
+          "icon": "icon-time",
+          "hide": false
+        }
+      ]
+    }
+  ]
+}
