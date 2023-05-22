@@ -6,10 +6,28 @@ import InproApp from "../../inpro/components/Inpro-App";
 import FimApp from "../../fim/components/FimApp";
 import AresApp from "../../ares/components/AresApp";
 import {Image, StyleSheet} from "react-native";
+import {useState} from "react";
+import * as Data from '../resources/modules.json'
 
 const Drawer = createDrawerNavigator();
 
 function ShellApp() {
+
+    function SideBarMenu() {
+        return (
+            <Drawer.Screen name={"FimApp"} component={FimApp} options={{
+                title: 'FimApp',
+                drawerIcon: ({focused, size}) => (
+                    <Image source={require('../resources/images/Fim.png')}
+                           style={[focused ? styles.drawerActive : styles.drawerInActive, {
+                               height: 30,
+                               width: 50
+                           }]}
+                    />)
+            }}/>
+        )
+    }
+
     return (
         <NavigationContainer>
             <Drawer.Navigator initialRouteName={"Home"}>
@@ -73,5 +91,5 @@ export default ShellApp;
 
 const styles = StyleSheet.create({
     drawerActive: {},
-    drawerInActive: {}
+    drawerInActive: {},
 })
